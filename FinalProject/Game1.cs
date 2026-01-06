@@ -10,6 +10,7 @@ namespace FinalProject
         private SpriteBatch _spriteBatch;
 
         Texture2D playerIdle;
+        Texture2D forestBG;
 
         int playerIdleColumns;
         int playerIdleFrame;
@@ -37,7 +38,7 @@ namespace FinalProject
             // TODO: Add your initialization logic here
 
             base.Initialize();
-            window = new Rectangle(0, 0, 800, 600);
+            window = new Rectangle(0, 0, 800, 450);
             _graphics.PreferredBackBufferWidth = window.Width;
             _graphics.PreferredBackBufferHeight = window.Height;
             _graphics.ApplyChanges();
@@ -46,12 +47,12 @@ namespace FinalProject
             playerIdleHeight = playerIdle.Height;
             playerIdleWidth = playerIdle.Width / playerIdleColumns;
 
-            time = 0.0f;
+            time = 0f;
             playerIdleFrameSpeed = 0.12f;
             playerIdleFrames = playerIdleColumns;
             playerIdleFrame = 0;
 
-            playerIdleDraw = new Rectangle(0, 0, playerIdleWidth, playerIdleHeight);
+            playerIdleDraw = new Rectangle(100, 100, playerIdleWidth * 2, playerIdleHeight * 2);
         }
 
         protected override void LoadContent()
@@ -61,6 +62,7 @@ namespace FinalProject
             // TODO: use this.Content to load your game content here
 
             playerIdle = Content.Load<Texture2D>("Idle");
+            forestBG = Content.Load<Texture2D>("Forest");
         }
 
         protected override void Update(GameTime gameTime)
@@ -99,7 +101,9 @@ namespace FinalProject
 
             _spriteBatch.Begin();
 
+            _spriteBatch.Draw(forestBG, new Rectangle(0, 0, forestBG.Width, forestBG.Height), Color.White);
             _spriteBatch.Draw(playerIdle, playerIdleDraw, new Rectangle(playerIdleFrame * playerIdleWidth, 0, playerIdleWidth, playerIdleHeight), Color.White * playerIdleOpacity);
+            
 
             _spriteBatch.End();
         }
