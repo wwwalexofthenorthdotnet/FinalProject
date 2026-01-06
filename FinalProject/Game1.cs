@@ -85,7 +85,7 @@ namespace FinalProject
 
             }
 
-            if (playerIdleVisible ==  false)
+            if (playerIdleVisible ==  true)
                 playerIdleOpacity = 1.0f;
         }
 
