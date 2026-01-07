@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace FinalProject
 {
@@ -9,7 +10,11 @@ namespace FinalProject
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
+        SpriteFont buttonFont;
+
         Texture2D playerIdle;
+        Texture2D knightIdle;
+        Texture2D button;
         Texture2D forestBG;
 
         int playerIdleColumns;
@@ -18,13 +23,22 @@ namespace FinalProject
         int playerIdleWidth;
         int playerIdleHeight;
 
-        float time, playerIdleFrameSpeed, playerIdleOpacity;
+        int knightIdleColumns;
+        int knightIdleFrame;
+        int knightIdleFrames;
+        int knightIdleWidth;
+        int knightIdleHeight;
 
-        Rectangle playerIdleSource;
+        float knightTime, playerTime, playerIdleFrameSpeed, knightIdleFrameSpeed;
+
         Rectangle playerIdleDraw;
+        Rectangle knightIdleDraw;
         Rectangle window;
+        Rectangle buttonFight;
 
+        bool buttonFightVisible = true;
         bool playerIdleVisible = true;
+        bool knightIdleVisible = true;
 
         public Game1()
         {
@@ -43,16 +57,29 @@ namespace FinalProject
             _graphics.PreferredBackBufferHeight = window.Height;
             _graphics.ApplyChanges();
 
+            buttonFight = new Rectangle(0, 0, button.Width, button.Height);
+
             playerIdleColumns = 7;
             playerIdleHeight = playerIdle.Height;
             playerIdleWidth = playerIdle.Width / playerIdleColumns;
-
-            time = 0f;
             playerIdleFrameSpeed = 0.12f;
             playerIdleFrames = playerIdleColumns;
             playerIdleFrame = 0;
-
+            playerTime = 0f;
             playerIdleDraw = new Rectangle(100, 100, playerIdleWidth * 2, playerIdleHeight * 2);
+
+            knightIdleColumns = 4;
+            knightIdleHeight = knightIdle.Height;
+            knightIdleWidth = knightIdle.Width / knightIdleColumns;
+            knightIdleFrameSpeed = 0.25f;
+            knightIdleFrames = knightIdleColumns;
+            knightIdleFrame = 2;
+            knightTime = 0f;
+            knightIdleDraw = new Rectangle(400, 100, knightIdleWidth * 2, knightIdleHeight * 2);
+
+
+
+
         }
 
         protected override void LoadContent()
@@ -62,7 +89,12 @@ namespace FinalProject
             // TODO: use this.Content to load your game content here
 
             playerIdle = Content.Load<Texture2D>("Idle");
+            knightIdle = Content.Load<Texture2D>("KnightIdle");
             forestBG = Content.Load<Texture2D>("Forest");
+            button = Content.Load<Texture2D>("button");
+
+            buttonFont = Content.Load<SpriteFont>("buttonFont");
+
         }
 
         protected override void Update(GameTime gameTime)
@@ -74,12 +106,14 @@ namespace FinalProject
 
             base.Update(gameTime);
 
-            time += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            playerTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            knightTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            if (time > playerIdleFrameSpeed)
+
+            if (playerTime > playerIdleFrameSpeed)
             {
-                time -= playerIdleFrameSpeed;
-                
+                playerTime = 0f;
+
                 playerIdleFrame += 1;
 
                 if (playerIdleFrame >= playerIdleFrames)
@@ -87,9 +121,20 @@ namespace FinalProject
 
             }
 
-            if (playerIdleVisible ==  true)
-                playerIdleOpacity = 1.0f;
+
+            if (knightTime > knightIdleFrameSpeed)
+            {
+                knightTime = 0f;
+
+                knightIdleFrame += 1;
+
+                if (knightIdleFrame >= knightIdleFrames)
+                    knightIdleFrame = 0;
+
+            }
+
         }
+
 
         protected override void Draw(GameTime gameTime)
         {
@@ -102,10 +147,22 @@ namespace FinalProject
             _spriteBatch.Begin();
 
             _spriteBatch.Draw(forestBG, new Rectangle(0, 0, forestBG.Width, forestBG.Height), Color.White);
-            _spriteBatch.Draw(playerIdle, playerIdleDraw, new Rectangle(playerIdleFrame * playerIdleWidth, 0, playerIdleWidth, playerIdleHeight), Color.White * playerIdleOpacity);
             
+            if (playerIdleVisible == true)
+            _spriteBatch.Draw(playerIdle, playerIdleDraw, new Rectangle(playerIdleFrame * playerIdleWidth, 0, playerIdleWidth, playerIdleHeight), Color.White);
+            if (knightIdleVisible == true)
+                _spriteBatch.Draw(knightIdle, knightIdleDraw, new Rectangle(knightIdleFrame * knightIdleWidth, 0, knightIdleWidth, knightIdleHeight), Color.White, 0f, new Vector2(0,0), SpriteEffects.FlipHorizontally, 0f);
+            if (buttonFightVisible == true)
+            {
+                _spriteBatch.Draw(button, buttonFight, buttonFight, Color.White);
+                _spriteBatch.DrawString(buttonFont, "Attack", new Vector2(0, 0), Color.White);
+            }
 
             _spriteBatch.End();
         }
+
+      
     }
+
+
 }
