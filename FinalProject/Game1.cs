@@ -82,7 +82,7 @@ namespace FinalProject
             playerAttackColumns = 5;
             playerAttackHeight = playerAttack.Height;
             playerAttackWidth = playerAttack.Width / playerAttackColumns;
-            playerAttackFrameSpeed = 0.12f;
+            playerAttackFrameSpeed = 0.5f;
             playerAttackFrames = playerAttackColumns;
             playerAttackFrame = 0;
             
@@ -125,7 +125,7 @@ namespace FinalProject
 
             // TODO: Add your update logic here
 
-            
+
 
             base.Update(gameTime);
 
@@ -139,6 +139,7 @@ namespace FinalProject
             {
                 if (buttonFight.Contains(mouseState.Position))
                 {
+                    playerTime = 0f;
                     int damage = DamageCalc.playerMelee(0);
                     playerIdleVisible = false;
                     playerAttackVisible = true;
@@ -146,14 +147,11 @@ namespace FinalProject
             }
 
 
-                if (playerTime > playerIdleFrameSpeed)
+            if (playerTime > playerIdleFrameSpeed)
             {
                 playerTime = 0f;
 
-                playerIdleFrame += 1;
-
-                if (playerIdleFrame >= playerIdleFrames)
-                    playerIdleFrame = 0;
+                playerIdleFrame = (playerIdleFrame + 1) % playerIdleFrames;
 
             }
 
@@ -162,13 +160,22 @@ namespace FinalProject
             {
                 knightTime = 0f;
 
-                knightIdleFrame += 1;
-
-                if (knightIdleFrame >= knightIdleFrames)
-                    knightIdleFrame = 0;
+                knightIdleFrame = (knightIdleFrame + 1) % knightIdleFrames;
 
             }
 
+            if (playerAttackVisible)
+            {
+                playerTime = 0f;
+
+                playerAttackFrame = (playerAttackFrame + 1) % playerAttackFrames;
+                
+                if (playerAttackFrame == 0)
+                {
+                    playerIdleVisible = true;
+                    playerAttackVisible = false;
+                }
+            }
         }
 
 
@@ -186,6 +193,8 @@ namespace FinalProject
             
             if (playerIdleVisible == true)
             _spriteBatch.Draw(playerIdle, playerDraw, new Rectangle(playerIdleFrame * playerIdleWidth, 0, playerIdleWidth, playerIdleHeight), Color.White);
+            if (playerAttackVisible == true)
+                _spriteBatch.Draw(playerAttack, playerDraw, new Rectangle(playerAttackFrame * playerAttackWidth, 0, playerAttackWidth, playerAttackHeight), Color.White);
             if (knightIdleVisible == true)
                 _spriteBatch.Draw(knightIdle, knightIdleDraw, new Rectangle(knightIdleFrame * knightIdleWidth, 0, knightIdleWidth, knightIdleHeight), Color.White, 0f, new Vector2(0,0), SpriteEffects.FlipHorizontally, 0f);
             if (buttonFightVisible == true)
@@ -193,6 +202,8 @@ namespace FinalProject
                 _spriteBatch.Draw(button, buttonFight, buttonFight, Color.White);
                 _spriteBatch.DrawString(buttonFont, "Attack", new Vector2(20, 0), Color.White);
             }
+
+            
 
             _spriteBatch.End();
         }
