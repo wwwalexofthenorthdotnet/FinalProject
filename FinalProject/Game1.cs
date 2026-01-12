@@ -12,7 +12,11 @@ namespace FinalProject
 
         SpriteFont buttonFont;
 
+        MouseState prevMouseState;
+        MouseState mouseState;
+
         Texture2D playerIdle;
+        Texture2D playerAttack;
         Texture2D knightIdle;
         Texture2D button;
         Texture2D forestBG;
@@ -23,21 +27,28 @@ namespace FinalProject
         int playerIdleWidth;
         int playerIdleHeight;
 
+        int playerAttackColumns;
+        int playerAttackFrame;
+        int playerAttackFrames;
+        int playerAttackWidth;
+        int playerAttackHeight;
+
         int knightIdleColumns;
         int knightIdleFrame;
         int knightIdleFrames;
         int knightIdleWidth;
         int knightIdleHeight;
 
-        float knightTime, playerTime, playerIdleFrameSpeed, knightIdleFrameSpeed;
+        float knightTime, playerTime, playerIdleFrameSpeed, playerAttackFrameSpeed, knightIdleFrameSpeed;
 
-        Rectangle playerIdleDraw;
+        Rectangle playerDraw;
         Rectangle knightIdleDraw;
         Rectangle window;
         Rectangle buttonFight;
 
         bool buttonFightVisible = true;
         bool playerIdleVisible = true;
+        bool playerAttackVisible = false;
         bool knightIdleVisible = true;
 
         public Game1()
@@ -66,7 +77,15 @@ namespace FinalProject
             playerIdleFrames = playerIdleColumns;
             playerIdleFrame = 0;
             playerTime = 0f;
-            playerIdleDraw = new Rectangle(100, 100, playerIdleWidth * 2, playerIdleHeight * 2);
+            playerDraw = new Rectangle(100, 100, playerIdleWidth * 2, playerIdleHeight * 2);
+
+            playerAttackColumns = 5;
+            playerAttackHeight = playerAttack.Height;
+            playerAttackWidth = playerAttack.Width / playerAttackColumns;
+            playerAttackFrameSpeed = 0.12f;
+            playerAttackFrames = playerAttackColumns;
+            playerAttackFrame = 0;
+            
 
             knightIdleColumns = 4;
             knightIdleHeight = knightIdle.Height;
@@ -89,11 +108,13 @@ namespace FinalProject
             // TODO: use this.Content to load your game content here
 
             playerIdle = Content.Load<Texture2D>("Idle");
+            playerAttack = Content.Load<Texture2D>("PlayerAttack");
+
             knightIdle = Content.Load<Texture2D>("KnightIdle");
             forestBG = Content.Load<Texture2D>("Forest");
             button = Content.Load<Texture2D>("button");
 
-            buttonFont = Content.Load<SpriteFont>("buttonFont");
+            buttonFont = Content.Load<SpriteFont>("Font");
 
         }
 
@@ -104,13 +125,28 @@ namespace FinalProject
 
             // TODO: Add your update logic here
 
+            
+
             base.Update(gameTime);
 
             playerTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
             knightTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
 
+            prevMouseState = mouseState;
+            mouseState = Mouse.GetState();
 
-            if (playerTime > playerIdleFrameSpeed)
+            if (mouseState.LeftButton == ButtonState.Pressed && prevMouseState.LeftButton == ButtonState.Released)
+            {
+                if (buttonFight.Contains(mouseState.Position))
+                {
+                    int damage = DamageCalc.playerMelee(0);
+                    playerIdleVisible = false;
+                    playerAttackVisible = true;
+                }
+            }
+
+
+                if (playerTime > playerIdleFrameSpeed)
             {
                 playerTime = 0f;
 
@@ -149,13 +185,13 @@ namespace FinalProject
             _spriteBatch.Draw(forestBG, new Rectangle(0, 0, forestBG.Width, forestBG.Height), Color.White);
             
             if (playerIdleVisible == true)
-            _spriteBatch.Draw(playerIdle, playerIdleDraw, new Rectangle(playerIdleFrame * playerIdleWidth, 0, playerIdleWidth, playerIdleHeight), Color.White);
+            _spriteBatch.Draw(playerIdle, playerDraw, new Rectangle(playerIdleFrame * playerIdleWidth, 0, playerIdleWidth, playerIdleHeight), Color.White);
             if (knightIdleVisible == true)
                 _spriteBatch.Draw(knightIdle, knightIdleDraw, new Rectangle(knightIdleFrame * knightIdleWidth, 0, knightIdleWidth, knightIdleHeight), Color.White, 0f, new Vector2(0,0), SpriteEffects.FlipHorizontally, 0f);
             if (buttonFightVisible == true)
             {
                 _spriteBatch.Draw(button, buttonFight, buttonFight, Color.White);
-                _spriteBatch.DrawString(buttonFont, "Attack", new Vector2(0, 0), Color.White);
+                _spriteBatch.DrawString(buttonFont, "Attack", new Vector2(20, 0), Color.White);
             }
 
             _spriteBatch.End();
