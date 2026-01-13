@@ -11,10 +11,16 @@ namespace FinalProject
     {
 
         //Player Base Stats
-        const int strength = 10;
-        const int speed = 10;
+        public const int playerHealth = 50;
+        public const int playerStrength = 10;
+        public const int playerSpeed = 10;
 
-        public static int currentStrength = strength;
+        //Enemy Base Stats
+        public const int enemyHealth = 25;
+        public const int enemyStrength = 10;
+        public const int enemySpeed = 10;
+
+        public static int currentStrength = playerStrength;
 
         public enum Weapon
         {
