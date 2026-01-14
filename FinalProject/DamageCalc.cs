@@ -20,20 +20,29 @@ namespace FinalProject
         public const int enemyStrength = 10;
         public const int enemySpeed = 10;
 
-        public static int currentStrength = playerStrength;
+        public static int currentPlayerStrength = playerStrength;
 
         public enum Weapon
         {
             None = 0,
+            knightSword = 2,
         }
 
         public static Weapon equippedWeapon = Weapon.None;
+        public static Weapon enemyWeapon = Weapon.knightSword;
 
 
-        public static int playerMelee(int playerDamageOutput)
+
+        public static int PlayerMelee(int damageOutput)
         {
-            playerDamageOutput = currentStrength / 2 + (int)equippedWeapon;
-            return playerDamageOutput;
+            damageOutput = currentPlayerStrength / 2 + (int)equippedWeapon;
+            return damageOutput;
+        }
+
+        public static int KnightMelee(int damageOutput)
+        {
+            damageOutput = enemyStrength / 2 + (int)enemyWeapon;
+            return damageOutput;
         }
     }
 }

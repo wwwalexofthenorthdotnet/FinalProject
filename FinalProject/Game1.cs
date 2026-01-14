@@ -20,6 +20,7 @@ namespace FinalProject
 
         Texture2D playerIdle;
         Texture2D playerAttack;
+        Texture2D playerHurt;
         Texture2D knightIdle;
         Texture2D knightHurt;
         Texture2D knightAttack;
@@ -58,10 +59,21 @@ namespace FinalProject
         float knightAttackFrameSpeed;
         float knightAttackTime;
 
+        int playerHurtColumns;
+        int playerHurtFrame;
+        int playerHurtFrames;
+        int playerHurtWidth;
+        int playerHurtHeight;
+        float playerHurtFrameSpeed;
+        float playerHurtTime;
+
+
         int damage = 0;
         int lastDamage = 0;
 
         int knightHealth;
+        int maxPlayerHealth;
+        int currentPlayerHealth;
 
 
         float knightIdleTime, knightHurtTime, playerIdleTime, playerAttackTime, playerIdleFrameSpeed, playerAttackFrameSpeed, knightIdleFrameSpeed, knightHurtFrameSpeed;
@@ -74,9 +86,11 @@ namespace FinalProject
         bool buttonFightVisible = true;
         bool playerIdleVisible = true;
         bool playerAttackVisible = false;
+        bool playerHurtVisible = false;
         bool knightIdleVisible = true;
         bool knightHurtVisible = false;
         bool knightAttackVisible = false;
+       
 
         bool knightActive = true;
 
@@ -115,6 +129,14 @@ namespace FinalProject
             playerAttackFrames = playerAttackColumns;
             playerAttackFrame = 0;
             playerAttackTime = 0f;
+
+            playerHurtColumns = 4;
+            playerHurtHeight = playerHurt.Height;
+            playerHurtWidth = playerHurt.Width / playerHurtColumns;
+            playerHurtFrameSpeed = 0.1f;
+            playerHurtFrames = playerHurtColumns;
+            playerHurtFrame = 0;
+            playerHurtTime = 0f;
             
 
             knightIdleColumns = 4;
@@ -143,6 +165,8 @@ namespace FinalProject
             knightAttackFrameSpeed = 0.1f;
 
             knightHealth = DamageCalc.enemyHealth;
+            maxPlayerHealth = DamageCalc.playerHealth;
+            currentPlayerHealth = maxPlayerHealth;
 
 
         }
@@ -155,6 +179,7 @@ namespace FinalProject
 
             playerIdle = Content.Load<Texture2D>("Idle");
             playerAttack = Content.Load<Texture2D>("PlayerAttack");
+            playerHurt = Content.Load<Texture2D>("playerHurt");
 
             knightIdle = Content.Load<Texture2D>("knightIdle");
             knightHurt = Content.Load<Texture2D>("knightHurt");
@@ -189,6 +214,8 @@ namespace FinalProject
                 knightHurtTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
             if (knightAttackVisible)
                 knightAttackTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (playerHurtVisible)
+                playerHurtTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
 
 
             prevMouseState = mouseState;
@@ -198,7 +225,7 @@ namespace FinalProject
             {
                 if (buttonFight.Contains(mouseState.Position) && playerIdleVisible && knightIdleVisible)
                 {
-                    damage = DamageCalc.playerMelee(0);
+                    damage = DamageCalc.PlayerMelee(0);
                     lastDamage = damage;
                     
                     playerIdleVisible = false;
@@ -209,6 +236,12 @@ namespace FinalProject
             if (knightHurtVisible)
             {
                 knightHealth = knightHealth - damage;
+                damage = 0;
+            }
+
+            if (playerHurtVisible)
+            {
+                currentPlayerHealth = currentPlayerHealth - damage;
                 damage = 0;
             }
 
@@ -245,6 +278,19 @@ namespace FinalProject
                 }
             }
 
+            if (playerHurtTime > playerHurtFrameSpeed && playerHurtVisible)
+            {
+                playerHurtTime = 0f;
+
+                playerHurtFrame = (playerHurtFrame + 1) % playerHurtFrames;
+
+                if (playerHurtFrame == 0)
+                {
+                    playerHurtVisible = false;
+                    playerIdleVisible = true;
+                }
+            }
+
             if (knightHurtTime > knightHurtFrameSpeed && knightHurtVisible)
             {
                 knightHurtTime = 0f;
@@ -260,6 +306,9 @@ namespace FinalProject
 
             if (knightAttackTime > knightAttackFrameSpeed && knightAttackVisible)
             {
+                damage = DamageCalc.KnightMelee(0);
+                lastDamage = damage;
+
                 knightAttackTime = 0f;
 
                 knightAttackFrame = (knightAttackFrame + 1) % knightAttackFrames;
@@ -268,8 +317,12 @@ namespace FinalProject
                 {
                     knightIdleVisible = true;
                     knightAttackVisible = false;
+                    playerHurtVisible = true;
                     playerIdleVisible = false;
+
                 }
+
+
             }
         }
 
@@ -306,8 +359,15 @@ namespace FinalProject
             if (knightAttackVisible)
                 _spriteBatch.Draw(knightAttack, knightIdleDraw, new Rectangle(knightAttackFrame * knightAttackWidth, 0, knightAttackWidth, knightAttackHeight), Color.White, 0f, new Vector2(0, 0), SpriteEffects.FlipHorizontally, 0f);
 
+            if (playerHurtVisible)
+            { 
+               _spriteBatch.Draw(playerHurt, playerDraw, new Rectangle(playerHurtFrame * playerHurtWidth, 0, playerHurtWidth, playerHurtHeight), Color.DarkRed);
+                _spriteBatch.DrawString(damageFont, lastDamage.ToString(), new Vector2(275, 200), Color.White);
+
+            }
 
             _spriteBatch.DrawString(damageFont, knightHealth.ToString() + "/" + DamageCalc.enemyHealth.ToString(), new Vector2(550, 350), Color.White);
+            _spriteBatch.DrawString(damageFont, currentPlayerHealth.ToString() + "/" + maxPlayerHealth.ToString(), new Vector2(175, 350), Color.White);
 
 
 
