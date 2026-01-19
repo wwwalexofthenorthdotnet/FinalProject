@@ -21,6 +21,7 @@ namespace FinalProject
         Texture2D playerIdle;
         Texture2D playerAttack;
         Texture2D playerHurt;
+        Texture2D playerDeath;
         Texture2D knightIdle;
         Texture2D knightHurt;
         Texture2D knightAttack;
@@ -67,6 +68,14 @@ namespace FinalProject
         float playerHurtFrameSpeed;
         float playerHurtTime;
 
+        int playerDeathColumns;
+        int playerDeathFrame;
+        int playerDeathFrames;
+        int playerDeathWidth;
+        int playerDeathHeight;
+        float playerDeathFrameSpeed;
+        float playerDeathTime;
+
 
         int damage = 0;
         int lastDamage = 0;
@@ -87,12 +96,23 @@ namespace FinalProject
         bool playerIdleVisible = true;
         bool playerAttackVisible = false;
         bool playerHurtVisible = false;
+        bool playerDeathVisible = false;
         bool knightIdleVisible = true;
         bool knightHurtVisible = false;
         bool knightAttackVisible = false;
        
 
         bool knightActive = true;
+
+        enum screen
+        {
+            mainMenu,
+            game,
+            gameOver,
+            win
+        }
+
+        screen Screen = screen.game;
 
         public Game1()
         {
@@ -164,6 +184,16 @@ namespace FinalProject
             knightAttackWidth = knightAttack.Width / knightAttackColumns;
             knightAttackFrameSpeed = 0.1f;
 
+            playerDeathColumns = 5;
+            playerDeathFrames = playerDeathColumns;
+            playerDeathFrame = 0;
+            playerDeathTime = 0f;
+            playerDeathHeight = playerDeath.Height;
+            playerDeathWidth = playerDeath.Width / playerDeathColumns;
+            playerDeathFrameSpeed = 0.12f;
+           
+
+
             knightHealth = DamageCalc.enemyHealth;
             maxPlayerHealth = DamageCalc.playerHealth;
             currentPlayerHealth = maxPlayerHealth;
@@ -180,6 +210,7 @@ namespace FinalProject
             playerIdle = Content.Load<Texture2D>("Idle");
             playerAttack = Content.Load<Texture2D>("PlayerAttack");
             playerHurt = Content.Load<Texture2D>("playerHurt");
+            playerDeath = Content.Load<Texture2D>("PlayerDeath");
 
             knightIdle = Content.Load<Texture2D>("knightIdle");
             knightHurt = Content.Load<Texture2D>("knightHurt");
@@ -216,6 +247,8 @@ namespace FinalProject
                 knightAttackTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
             if (playerHurtVisible)
                 playerHurtTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (playerDeathVisible)
+                playerDeathTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
 
 
             prevMouseState = mouseState;
@@ -233,6 +266,12 @@ namespace FinalProject
                 }
             }
 
+            if (currentPlayerHealth <= 0)
+            {
+                playerDeathVisible = true;
+                playerIdleVisible = false;
+                playerHurtVisible = false;
+            }
             if (knightHurtVisible)
             {
                 knightHealth = knightHealth - damage;
@@ -324,7 +363,22 @@ namespace FinalProject
 
 
             }
+
+            if (playerDeathTime > playerDeathFrameSpeed && playerDeathVisible)
+            {
+
+                playerDeathTime = 0f;
+
+                playerDeathFrame = (playerDeathFrame + 1) % playerDeathFrames;
+
+                if (playerDeathFrame == 0)
+                {
+                    Screen = screen.gameOver;
+                }
+            }
         }
+
+        
 
 
         protected override void Draw(GameTime gameTime)
@@ -336,40 +390,47 @@ namespace FinalProject
             base.Draw(gameTime);
 
             _spriteBatch.Begin();
-
-            _spriteBatch.Draw(forestBG, new Rectangle(0, 0, forestBG.Width, forestBG.Height), Color.White);
-            
-            if (playerIdleVisible)
-            _spriteBatch.Draw(playerIdle, playerDraw, new Rectangle(playerIdleFrame * playerIdleWidth, 0, playerIdleWidth, playerIdleHeight), Color.White);
-            if (playerAttackVisible)
-                _spriteBatch.Draw(playerAttack, playerDraw, new Rectangle(playerAttackFrame * playerAttackWidth, 0, playerAttackWidth, playerAttackHeight), Color.White);
-            if (knightIdleVisible)
-                _spriteBatch.Draw(knightIdle, knightIdleDraw, new Rectangle(knightIdleFrame * knightIdleWidth, 0, knightIdleWidth, knightIdleHeight), Color.White, 0f, new Vector2(0,0), SpriteEffects.FlipHorizontally, 0f);
-            if (knightHurtVisible)
-            { 
-                _spriteBatch.Draw(knightHurt, knightIdleDraw, new Rectangle(knightHurtFrame * knightHurtWidth, 0, knightHurtWidth, knightHurtHeight), Color.DarkRed, 0f, new Vector2(0, 0), SpriteEffects.FlipHorizontally, 0f);
-                _spriteBatch.DrawString(damageFont, lastDamage.ToString(), new Vector2(500, 200), Color.White);
-            }
-            if (buttonFightVisible)
+            if (Screen == screen.game)
             {
-                _spriteBatch.Draw(button, buttonFight, buttonFight, Color.White);
-                _spriteBatch.DrawString(buttonFont, "Attack", new Vector2(20, 0), Color.White);
+                _spriteBatch.Draw(forestBG, new Rectangle(0, 0, forestBG.Width, forestBG.Height), Color.White);
+
+                if (playerIdleVisible)
+                    _spriteBatch.Draw(playerIdle, playerDraw, new Rectangle(playerIdleFrame * playerIdleWidth, 0, playerIdleWidth, playerIdleHeight), Color.White);
+                if (playerAttackVisible)
+                    _spriteBatch.Draw(playerAttack, playerDraw, new Rectangle(playerAttackFrame * playerAttackWidth, 0, playerAttackWidth, playerAttackHeight), Color.White);
+                if (knightIdleVisible)
+                    _spriteBatch.Draw(knightIdle, knightIdleDraw, new Rectangle(knightIdleFrame * knightIdleWidth, 0, knightIdleWidth, knightIdleHeight), Color.White, 0f, new Vector2(0, 0), SpriteEffects.FlipHorizontally, 0f);
+                if (knightHurtVisible)
+                {
+                    _spriteBatch.Draw(knightHurt, knightIdleDraw, new Rectangle(knightHurtFrame * knightHurtWidth, 0, knightHurtWidth, knightHurtHeight), Color.DarkRed, 0f, new Vector2(0, 0), SpriteEffects.FlipHorizontally, 0f);
+                    _spriteBatch.DrawString(damageFont, lastDamage.ToString(), new Vector2(500, 200), Color.White);
+                }
+                if (buttonFightVisible)
+                {
+                    _spriteBatch.Draw(button, buttonFight, buttonFight, Color.White);
+                    _spriteBatch.DrawString(buttonFont, "Attack", new Vector2(20, 0), Color.White);
+                }
+
+                if (knightAttackVisible)
+                    _spriteBatch.Draw(knightAttack, knightIdleDraw, new Rectangle(knightAttackFrame * knightAttackWidth, 0, knightAttackWidth, knightAttackHeight), Color.White, 0f, new Vector2(0, 0), SpriteEffects.FlipHorizontally, 0f);
+
+                if (playerHurtVisible)
+                {
+                    _spriteBatch.Draw(playerHurt, playerDraw, new Rectangle(playerHurtFrame * playerHurtWidth, 0, playerHurtWidth, playerHurtHeight), Color.DarkRed);
+                    _spriteBatch.DrawString(damageFont, lastDamage.ToString(), new Vector2(275, 200), Color.White);
+
+                }
+
+                if (playerDeathVisible)
+                {
+                    _spriteBatch.Draw(playerDeath, playerDraw, new Rectangle(playerDeathFrame * playerDeathWidth, 0, playerDeathWidth, playerDeathHeight), Color.DarkRed);
+
+                }
+
+                _spriteBatch.DrawString(damageFont, knightHealth.ToString() + "/" + DamageCalc.enemyHealth.ToString(), new Vector2(550, 350), Color.White);
+                _spriteBatch.DrawString(damageFont, currentPlayerHealth.ToString() + "/" + maxPlayerHealth.ToString(), new Vector2(175, 350), Color.White);
+
             }
-
-            if (knightAttackVisible)
-                _spriteBatch.Draw(knightAttack, knightIdleDraw, new Rectangle(knightAttackFrame * knightAttackWidth, 0, knightAttackWidth, knightAttackHeight), Color.White, 0f, new Vector2(0, 0), SpriteEffects.FlipHorizontally, 0f);
-
-            if (playerHurtVisible)
-            { 
-               _spriteBatch.Draw(playerHurt, playerDraw, new Rectangle(playerHurtFrame * playerHurtWidth, 0, playerHurtWidth, playerHurtHeight), Color.DarkRed);
-                _spriteBatch.DrawString(damageFont, lastDamage.ToString(), new Vector2(275, 200), Color.White);
-
-            }
-
-            _spriteBatch.DrawString(damageFont, knightHealth.ToString() + "/" + DamageCalc.enemyHealth.ToString(), new Vector2(550, 350), Color.White);
-            _spriteBatch.DrawString(damageFont, currentPlayerHealth.ToString() + "/" + maxPlayerHealth.ToString(), new Vector2(175, 350), Color.White);
-
-
 
 
             _spriteBatch.End();
