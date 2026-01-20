@@ -1,8 +1,10 @@
 ﻿using Microsoft.VisualBasic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 using System;
 
 namespace FinalProject
@@ -14,6 +16,10 @@ namespace FinalProject
 
         SpriteFont buttonFont;
         SpriteFont damageFont;
+        SpriteFont menuFont;
+
+        Song bgm;
+        SoundEffect hit;
 
         MouseState prevMouseState;
         MouseState mouseState;
@@ -22,6 +28,7 @@ namespace FinalProject
         Texture2D playerAttack;
         Texture2D playerHurt;
         Texture2D playerDeath;
+        Texture2D knightDeath;
         Texture2D knightIdle;
         Texture2D knightHurt;
         Texture2D knightAttack;
@@ -76,6 +83,14 @@ namespace FinalProject
         float playerDeathFrameSpeed;
         float playerDeathTime;
 
+        int knightDeathColumns;
+        int knightDeathFrame;
+        int knightDeathFrames;
+        int knightDeathWidth;
+        int knightDeathHeight;
+        float knightDeathFrameSpeed;
+        float knightDeathTime;
+
 
         int damage = 0;
         int lastDamage = 0;
@@ -94,6 +109,7 @@ namespace FinalProject
 
         bool buttonFightVisible = true;
         bool playerIdleVisible = true;
+        bool knightDeathVisible = false;
         bool playerAttackVisible = false;
         bool playerHurtVisible = false;
         bool playerDeathVisible = false;
@@ -112,7 +128,7 @@ namespace FinalProject
             win
         }
 
-        screen Screen = screen.game;
+        screen Screen = screen.win;
 
         public Game1()
         {
@@ -192,13 +208,23 @@ namespace FinalProject
             playerDeathWidth = playerDeath.Width / playerDeathColumns;
             playerDeathFrameSpeed = 0.12f;
            
+            knightDeathColumns = 6;
+            knightDeathFrames = knightDeathColumns;
+            knightDeathFrame = 0;
+            knightDeathTime = 0f;
+            knightDeathHeight = knightDeath.Height;
+            knightDeathWidth = knightDeath.Width / knightDeathColumns;
+            knightDeathFrameSpeed = 0.15f;
 
 
             knightHealth = DamageCalc.enemyHealth;
             maxPlayerHealth = DamageCalc.playerHealth;
             currentPlayerHealth = maxPlayerHealth;
 
-
+            MediaPlayer.IsRepeating = true;
+            MediaPlayer.Play(bgm);
+               
+            
         }
 
         protected override void LoadContent()
@@ -215,13 +241,17 @@ namespace FinalProject
             knightIdle = Content.Load<Texture2D>("knightIdle");
             knightHurt = Content.Load<Texture2D>("knightHurt");
             knightAttack = Content.Load<Texture2D>("knightAttack");
+            knightDeath = Content.Load<Texture2D>("knightDeath");
             
             forestBG = Content.Load<Texture2D>("Forest");
             button = Content.Load<Texture2D>("button");
 
             buttonFont = Content.Load<SpriteFont>("Font");
             damageFont = Content.Load<SpriteFont>("damageFont");
+            menuFont = Content.Load<SpriteFont>("menuFont");
 
+            bgm = Content.Load<Song>("the lost portrait");
+            hit = Content.Load<SoundEffect>("hitHurt");
 
         }
 
@@ -249,7 +279,10 @@ namespace FinalProject
                 playerHurtTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
             if (playerDeathVisible)
                 playerDeathTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (knightDeathVisible)
+                knightDeathTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
 
+            
 
             prevMouseState = mouseState;
             mouseState = Mouse.GetState();
@@ -272,6 +305,14 @@ namespace FinalProject
                 playerIdleVisible = false;
                 playerHurtVisible = false;
             }
+
+            if (knightHealth <= 0)
+            {
+                knightDeathVisible = true;
+                knightIdleVisible = false;
+                knightHurtVisible = false;
+            }
+
             if (knightHurtVisible)
             {
                 knightHealth = knightHealth - damage;
@@ -310,6 +351,7 @@ namespace FinalProject
                 
                 if (playerAttackFrame == 0)
                 {
+                    hit.Play();
                     playerIdleVisible = true;
                     playerAttackVisible = false;
                     knightHurtVisible = true;
@@ -354,6 +396,7 @@ namespace FinalProject
 
                 if (knightAttackFrame == 0)
                 {
+                    hit.Play();
                     knightIdleVisible = true;
                     knightAttackVisible = false;
                     playerHurtVisible = true;
@@ -376,6 +419,19 @@ namespace FinalProject
                     Screen = screen.gameOver;
                 }
             }
+
+            if (knightDeathTime > knightDeathFrameSpeed && knightDeathVisible)
+            {
+
+                knightDeathTime = 0f;
+
+                knightDeathFrame = (knightDeathFrame + 1) % knightDeathFrames;
+
+                if (knightDeathFrame == 0)
+                {
+                    Screen = screen.win;
+                }
+            }
         }
 
         
@@ -383,7 +439,7 @@ namespace FinalProject
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
 
             // TODO: Add your drawing code here
 
@@ -427,11 +483,26 @@ namespace FinalProject
 
                 }
 
+                if (knightDeathVisible)
+                    _spriteBatch.Draw(knightDeath, knightIdleDraw, new Rectangle(knightDeathFrame * knightDeathWidth, 0, knightDeathWidth, knightDeathHeight), Color.DarkRed, 0f, new Vector2(0, 0), SpriteEffects.FlipHorizontally, 0f);
+
+
                 _spriteBatch.DrawString(damageFont, knightHealth.ToString() + "/" + DamageCalc.enemyHealth.ToString(), new Vector2(550, 350), Color.White);
                 _spriteBatch.DrawString(damageFont, currentPlayerHealth.ToString() + "/" + maxPlayerHealth.ToString(), new Vector2(175, 350), Color.White);
 
+
             }
 
+            if (Screen == screen.win)
+            {
+                _spriteBatch.DrawString(menuFont, "You Win!", new Vector2(250, 200), Color.LimeGreen);
+
+            }
+
+            if (Screen == screen.gameOver)
+            {
+                _spriteBatch.DrawString(menuFont, "You Lose", new Vector2(250, 200), Color.DarkRed);
+            }
 
             _spriteBatch.End();
         }
