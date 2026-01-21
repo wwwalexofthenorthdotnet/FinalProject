@@ -20,6 +20,7 @@ namespace FinalProject
 
         Song bgm;
         SoundEffect hit;
+        SoundEffect click;
 
         MouseState prevMouseState;
         MouseState mouseState;
@@ -34,6 +35,8 @@ namespace FinalProject
         Texture2D knightAttack;
         Texture2D button;
         Texture2D forestBG;
+
+        Texture2D rectangle;
 
         int playerIdleColumns;
         int playerIdleFrame;
@@ -107,6 +110,10 @@ namespace FinalProject
         Rectangle window;
         Rectangle buttonFight;
 
+        Rectangle playButton;
+        Rectangle helpButton;
+        Rectangle quitButton;
+
         bool buttonFightVisible = true;
         bool playerIdleVisible = true;
         bool knightDeathVisible = false;
@@ -124,11 +131,12 @@ namespace FinalProject
         {
             mainMenu,
             game,
+            help,
             gameOver,
             win
         }
 
-        screen Screen = screen.win;
+        screen Screen = screen.mainMenu;
 
         public Game1()
         {
@@ -223,8 +231,10 @@ namespace FinalProject
 
             MediaPlayer.IsRepeating = true;
             MediaPlayer.Play(bgm);
-               
-            
+
+            playButton = new Rectangle(375, 150, 80, 50);
+            helpButton = new Rectangle(375, 250, 80, 50);
+            quitButton = new Rectangle(375, 350, 80, 50);
         }
 
         protected override void LoadContent()
@@ -252,7 +262,10 @@ namespace FinalProject
 
             bgm = Content.Load<Song>("the lost portrait");
             hit = Content.Load<SoundEffect>("hitHurt");
+            click = Content.Load<SoundEffect>("pickupCoin");
 
+            rectangle = Content.Load<Texture2D>("rectangle");
+            
         }
 
         protected override void Update(GameTime gameTime)
@@ -282,156 +295,190 @@ namespace FinalProject
             if (knightDeathVisible)
                 knightDeathTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            
+
 
             prevMouseState = mouseState;
             mouseState = Mouse.GetState();
-
-            if (mouseState.LeftButton == ButtonState.Pressed && prevMouseState.LeftButton == ButtonState.Released)
+            if (Screen == screen.game)
             {
-                if (buttonFight.Contains(mouseState.Position) && playerIdleVisible && knightIdleVisible)
+                if (mouseState.LeftButton == ButtonState.Pressed && prevMouseState.LeftButton == ButtonState.Released)
                 {
-                    damage = DamageCalc.PlayerMelee(0);
-                    lastDamage = damage;
-                    
+                    if (buttonFight.Contains(mouseState.Position) && playerIdleVisible && knightIdleVisible)
+                    {
+                        damage = DamageCalc.PlayerMelee(0);
+                        lastDamage = damage;
+
+                        playerIdleVisible = false;
+                        playerAttackVisible = true;
+                    }
+                }
+
+                if (currentPlayerHealth <= 0)
+                {
+                    playerDeathVisible = true;
                     playerIdleVisible = false;
-                    playerAttackVisible = true;
-                }
-            }
-
-            if (currentPlayerHealth <= 0)
-            {
-                playerDeathVisible = true;
-                playerIdleVisible = false;
-                playerHurtVisible = false;
-            }
-
-            if (knightHealth <= 0)
-            {
-                knightDeathVisible = true;
-                knightIdleVisible = false;
-                knightHurtVisible = false;
-            }
-
-            if (knightHurtVisible)
-            {
-                knightHealth = knightHealth - damage;
-                damage = 0;
-            }
-
-            if (playerHurtVisible)
-            {
-                currentPlayerHealth = currentPlayerHealth - damage;
-                damage = 0;
-            }
-
-
-            if (playerIdleTime > playerIdleFrameSpeed)
-            {
-                playerIdleTime = 0f;
-
-                playerIdleFrame = (playerIdleFrame + 1) % playerIdleFrames;
-
-            }
-
-
-            if (knightIdleTime > knightIdleFrameSpeed)
-            {
-                knightIdleTime = 0f;
-
-                knightIdleFrame = (knightIdleFrame + 1) % knightIdleFrames;
-
-            }
-
-            if (playerAttackTime > playerAttackFrameSpeed && playerAttackVisible)
-            {
-                playerAttackTime = 0f;
-
-                playerAttackFrame = (playerAttackFrame + 1) % playerAttackFrames;
-                
-                if (playerAttackFrame == 0)
-                {
-                    hit.Play();
-                    playerIdleVisible = true;
-                    playerAttackVisible = false;
-                    knightHurtVisible = true;
-                    knightIdleVisible = false;
-                }
-            }
-
-            if (playerHurtTime > playerHurtFrameSpeed && playerHurtVisible)
-            {
-                playerHurtTime = 0f;
-
-                playerHurtFrame = (playerHurtFrame + 1) % playerHurtFrames;
-
-                if (playerHurtFrame == 0)
-                {
                     playerHurtVisible = false;
-                    playerIdleVisible = true;
                 }
-            }
 
-            if (knightHurtTime > knightHurtFrameSpeed && knightHurtVisible)
-            {
-                knightHurtTime = 0f;
-
-                knightHurtFrame = (knightHurtFrame + 1) % knightHurtFrames;
-
-                if (knightHurtFrame == 0)
+                if (knightHealth <= 0)
                 {
+                    knightDeathVisible = true;
+                    knightIdleVisible = false;
                     knightHurtVisible = false;
-                    knightAttackVisible = true;
                 }
-            }
 
-            if (knightAttackTime > knightAttackFrameSpeed && knightAttackVisible)
-            {
-                damage = DamageCalc.KnightMelee(0);
-                lastDamage = damage;
-
-                knightAttackTime = 0f;
-
-                knightAttackFrame = (knightAttackFrame + 1) % knightAttackFrames;
-
-                if (knightAttackFrame == 0)
+                if (knightHurtVisible)
                 {
-                    hit.Play();
-                    knightIdleVisible = true;
-                    knightAttackVisible = false;
-                    playerHurtVisible = true;
-                    playerIdleVisible = false;
-
+                    knightHealth = knightHealth - damage;
+                    damage = 0;
                 }
 
-
-            }
-
-            if (playerDeathTime > playerDeathFrameSpeed && playerDeathVisible)
-            {
-
-                playerDeathTime = 0f;
-
-                playerDeathFrame = (playerDeathFrame + 1) % playerDeathFrames;
-
-                if (playerDeathFrame == 0)
+                if (playerHurtVisible)
                 {
-                    Screen = screen.gameOver;
+                    currentPlayerHealth = currentPlayerHealth - damage;
+                    damage = 0;
                 }
-            }
 
-            if (knightDeathTime > knightDeathFrameSpeed && knightDeathVisible)
-            {
 
-                knightDeathTime = 0f;
-
-                knightDeathFrame = (knightDeathFrame + 1) % knightDeathFrames;
-
-                if (knightDeathFrame == 0)
+                if (playerIdleTime > playerIdleFrameSpeed)
                 {
-                    Screen = screen.win;
+                    playerIdleTime = 0f;
+
+                    playerIdleFrame = (playerIdleFrame + 1) % playerIdleFrames;
+
+                }
+
+
+                if (knightIdleTime > knightIdleFrameSpeed)
+                {
+                    knightIdleTime = 0f;
+
+                    knightIdleFrame = (knightIdleFrame + 1) % knightIdleFrames;
+
+                }
+
+                if (playerAttackTime > playerAttackFrameSpeed && playerAttackVisible)
+                {
+                    playerAttackTime = 0f;
+
+                    playerAttackFrame = (playerAttackFrame + 1) % playerAttackFrames;
+
+                    if (playerAttackFrame == 0)
+                    {
+                        hit.Play();
+                        playerIdleVisible = true;
+                        playerAttackVisible = false;
+                        knightHurtVisible = true;
+                        knightIdleVisible = false;
+                    }
+                }
+
+                if (playerHurtTime > playerHurtFrameSpeed && playerHurtVisible)
+                {
+                    playerHurtTime = 0f;
+
+                    playerHurtFrame = (playerHurtFrame + 1) % playerHurtFrames;
+
+                    if (playerHurtFrame == 0)
+                    {
+                        playerHurtVisible = false;
+                        playerIdleVisible = true;
+                    }
+                }
+
+                if (knightHurtTime > knightHurtFrameSpeed && knightHurtVisible)
+                {
+                    knightHurtTime = 0f;
+
+                    knightHurtFrame = (knightHurtFrame + 1) % knightHurtFrames;
+
+                    if (knightHurtFrame == 0)
+                    {
+                        knightHurtVisible = false;
+                        knightAttackVisible = true;
+                    }
+                }
+
+                if (knightAttackTime > knightAttackFrameSpeed && knightAttackVisible)
+                {
+                    damage = DamageCalc.KnightMelee(0);
+                    lastDamage = damage;
+
+                    knightAttackTime = 0f;
+
+                    knightAttackFrame = (knightAttackFrame + 1) % knightAttackFrames;
+
+                    if (knightAttackFrame == 0)
+                    {
+                        hit.Play();
+                        knightIdleVisible = true;
+                        knightAttackVisible = false;
+                        playerHurtVisible = true;
+                        playerIdleVisible = false;
+
+                    }
+
+
+                }
+
+                if (playerDeathTime > playerDeathFrameSpeed && playerDeathVisible)
+                {
+
+                    playerDeathTime = 0f;
+
+                    playerDeathFrame = (playerDeathFrame + 1) % playerDeathFrames;
+
+                    if (playerDeathFrame == 0)
+                    {
+                        Screen = screen.gameOver;
+                    }
+                }
+
+                if (knightDeathTime > knightDeathFrameSpeed && knightDeathVisible)
+                {
+
+                    knightDeathTime = 0f;
+
+                    knightDeathFrame = (knightDeathFrame + 1) % knightDeathFrames;
+
+                    if (knightDeathFrame == 0)
+                    {
+                        Screen = screen.win;
+                    }
                 }
             }
+
+            if (Screen == screen.mainMenu)
+            {
+                if (mouseState.LeftButton == ButtonState.Pressed && prevMouseState.LeftButton == ButtonState.Released)
+                {
+                    if (playButton.Contains(mouseState.Position))
+                    {
+                        click.Play();
+                        Screen = screen.game;
+                    }
+                    if (helpButton.Contains(mouseState.Position))
+                    {
+                        click.Play();
+                        Screen = screen.help;
+                    }
+                    if (quitButton.Contains(mouseState.Position))
+                    {
+                        click.Play();
+                        Exit();
+                    }
+                }
+            }
+
+            if (Screen == screen.help)
+            {
+                if (mouseState.LeftButton == ButtonState.Pressed && prevMouseState.LeftButton == ButtonState.Released)
+                {
+                    if (quitButton.Contains(mouseState.Position))
+                        Screen = screen.mainMenu;
+                }
+            }
+
         }
 
         
@@ -504,6 +551,30 @@ namespace FinalProject
                 _spriteBatch.DrawString(menuFont, "You Lose", new Vector2(250, 200), Color.DarkRed);
             }
 
+            if (Screen == screen.mainMenu)
+            {
+                _spriteBatch.DrawString(menuFont, "Gangster Game", new Vector2(175, 50), Color.White);
+                _spriteBatch.DrawString(damageFont, "Play", new Vector2(375, 150), Color.White);
+                _spriteBatch.DrawString(damageFont, "Help", new Vector2(375, 250), Color.White);
+                _spriteBatch.DrawString(damageFont, "Quit", new Vector2(375, 350), Color.White);
+
+                _spriteBatch.Draw(rectangle, playButton, Color.ForestGreen * 0f);
+                _spriteBatch.Draw(rectangle, helpButton, Color.ForestGreen * 0f);
+                _spriteBatch.Draw(rectangle, quitButton, Color.ForestGreen * 0f);
+
+
+            }
+
+            if (Screen == screen.help)
+            {
+                _spriteBatch.DrawString(damageFont, "Press PLAY and then Press Attack", new Vector2(100, 150), Color.White);
+                _spriteBatch.DrawString(damageFont, "until you win", new Vector2(300, 200), Color.White);
+
+                _spriteBatch.DrawString(damageFont, "Back", new Vector2(375, 350), Color.White);
+                _spriteBatch.Draw(rectangle, quitButton, Color.ForestGreen * 0f);
+
+
+            }
             _spriteBatch.End();
         }
 
