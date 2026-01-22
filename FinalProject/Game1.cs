@@ -11,6 +11,7 @@ namespace FinalProject
 {
     public class Game1 : Game
     {
+
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
@@ -113,6 +114,8 @@ namespace FinalProject
         Rectangle playButton;
         Rectangle helpButton;
         Rectangle quitButton;
+
+        Rectangle loseButton;
 
         bool buttonFightVisible = true;
         bool playerIdleVisible = true;
@@ -235,6 +238,7 @@ namespace FinalProject
             playButton = new Rectangle(375, 150, 80, 50);
             helpButton = new Rectangle(375, 250, 80, 50);
             quitButton = new Rectangle(375, 350, 80, 50);
+            loseButton = new Rectangle(0, 400, 80, 50);
         }
 
         protected override void LoadContent()
@@ -446,6 +450,12 @@ namespace FinalProject
                         Screen = screen.win;
                     }
                 }
+
+                if (mouseState.LeftButton == ButtonState.Pressed && prevMouseState.LeftButton == ButtonState.Released)
+                {
+                    if (loseButton.Contains(mouseState.Position))
+                        currentPlayerHealth = currentPlayerHealth - 100;
+                }
             }
 
             if (Screen == screen.mainMenu)
@@ -537,6 +547,7 @@ namespace FinalProject
                 _spriteBatch.DrawString(damageFont, knightHealth.ToString() + "/" + DamageCalc.enemyHealth.ToString(), new Vector2(550, 350), Color.White);
                 _spriteBatch.DrawString(damageFont, currentPlayerHealth.ToString() + "/" + maxPlayerHealth.ToString(), new Vector2(175, 350), Color.White);
 
+                _spriteBatch.Draw(rectangle, loseButton, Color.ForestGreen * 0f);
 
             }
 

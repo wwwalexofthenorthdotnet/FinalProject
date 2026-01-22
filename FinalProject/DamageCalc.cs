@@ -6,12 +6,15 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace FinalProject
-{
+{ 
+
     internal static class DamageCalc
     {
 
+        private static Random generator = new Random();
+
         //Player Base Stats
-        public const int playerHealth = 50;
+        public const int playerHealth = 30;
         public const int playerStrength = 10;
         public const int playerSpeed = 10;
 
@@ -21,6 +24,7 @@ namespace FinalProject
         public const int enemySpeed = 10;
 
         public static int currentPlayerStrength = playerStrength;
+
 
         public enum Weapon
         {
@@ -35,13 +39,13 @@ namespace FinalProject
 
         public static int PlayerMelee(int damageOutput)
         {
-            damageOutput = currentPlayerStrength / 2 + (int)equippedWeapon;
+            damageOutput = generator.Next(1, currentPlayerStrength) + (int)equippedWeapon;
             return damageOutput;
         }
 
         public static int KnightMelee(int damageOutput)
         {
-            damageOutput = enemyStrength / 2 + (int)enemyWeapon;
+            damageOutput = generator.Next(2, enemyStrength) + (int)equippedWeapon;
             return damageOutput;
         }
     }
